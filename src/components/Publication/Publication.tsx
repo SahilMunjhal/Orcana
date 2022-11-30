@@ -1,0 +1,53 @@
+import React from 'react';
+import useTrack from '../../hooks/useTrack/useTrack';
+import AudioTrack from '../AudioTrack/AudioTrack';
+import DataTrack from '../DataTrack/DataTrack';
+import VideoTrack from '../VideoTrack/VideoTrack';
+
+import { IVideoTrack } from '../../types';
+import {
+  AudioTrack as IAudioTrack,
+  LocalTrackPublication,
+  Participant,
+  RemoteTrackPublication,
+  Track,
+} from 'twilio-video';
+
+interface PublicationProps {
+  publication: LocalTrackPublication | RemoteTrackPublication;
+  participant: Participant;
+  isLocalParticipant?: boolean;
+  videoOnly?: boolean;
+  videoPriority?: Track.Priority | null;
+  id?: string;
+}
+
+export default function Publication({
+  publication,
+  isLocalParticipant,
+  videoOnly,
+  videoPriority,
+  id,
+}: PublicationProps) {
+  const track = useTrack(publication);
+
+  if (!track) return null;
+
+  switch (track.kind) {
+    case 'video':
+      return (
+        <VideoTrack
+          track={track as IVideoTrack}
+          priority={videoPriority}
+          isLocal={track.name.includes('camera') && isLocalParticipant}
+          id={id}
+        />
+      );
+    case 'audio':
+      return videoOnly ? null : <AudioTrack track={track as IAudioTrack} />;
+    case 'data':
+      return videoOnly ? null : <DataTrack track={track} />;
+    default:
+      return null;
+  }
+}
